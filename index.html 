@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Warzone Intelligence Dashboard</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+
+<style>
+body { font-family: Arial; background:#111; color:#fff; }
+.container { width: 90%; margin:auto; }
+h1 { text-align:center; }
+.card { background:#1e1e1e; padding:15px; margin:10px; border-radius:8px; }
+button { padding:8px; margin:5px; cursor:pointer; }
+select { padding:6px; margin-top:10px; }
+table { border-collapse: collapse; }
+th, td { padding:8px; text-align:center; }
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>Kaiserin TP's Warzone Intel Dashboard v0.07</h1>
+
+<div class="card">
+<h2>🏆 Rankings</h2>
+<table border="1" width="100%">
+<tr><th>Rank</th><th>Zone</th><th>Tier</th></tr>
+<tr><td>1</td><td>1097</td><td>S+</td></tr>
+<tr><td>2</td><td>1133</td><td>S</td></tr>
+<tr><td>3</td><td>1111</td><td>S</td></tr>
+<tr><td>4</td><td>1149</td><td>S-</td></tr>
+<tr><td>5</td><td><b>1176 (YOU)</b></td><td>A+</td></tr>
+<tr><td>6</td><td>1120</td><td>A</td></tr>
+<tr><td>7</td><td>1070</td><td>B+</td></tr>
+<tr><td>8</td><td>1170</td><td>B</td></tr>
+</table>
+</div>
+
+<div class="card" style="max-width:500px; margin:auto; height:220px;">
+<h2>📊 Warzone Metrics</h2>
+<canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+<h2>⚔️ Predicted outcome for 1176</h2>
+
+<button onclick="showMatch('1097')">1097</button>
+<button onclick="showMatch('1133')">1133</button>
+<button onclick="showMatch('1111')">1111</button>
+<button onclick="showMatch('1149')">1149</button>
+<button onclick="showMatch('1120')">1120</button>
+<button onclick="showMatch('1070')">1070</button>
+<button onclick="showMatch('1170')">1170</button>
+
+<p id="matchResult"></p>
+</div>
+
+<div class="card">
+<h2>🧾 Warzone Info</h2>
+
+<select id="zoneSelect">
+<option value="">Select Zone</option>
+<option>1097</option>
+<option>1133</option>
+<option>1111</option>
+<option>1149</option>
+<option>1176</option>
+<option>1120</option>
+<option>1070</option>
+<option>1170</option>
+</select>
+
+<p id="zoneInfo"></p>
+<p id="zoneLethality" style="font-size:18px; font-weight:bold;"></p>
+<p id="zonePlayers"></p>
+</div>
+
+</div>
+
+<script>
+
+// ================= MATCHUPS =================
+function showMatch(zone){
+
+  const result = {
+    "1097":"❌ Heavy Loss",
+    "1133":"❌ Likely Loss",
+    "1111":"⚠️ Close",
+    "1149":"⚖️ 50/50",
+    "1120":"✅ Win",
+    "1070":"✅ Win",
+    "1170":"✅ Easy Win"
+  };
+
+  document.getElementById("matchResult").innerText = result[zone] || "";
+
+  document.getElementById("zoneSelect").value = zone;
+
+  renderZone(zone);
+}
+
+// ================= DATA =================
+const lethalityData = {
+"1097":177.3,
+"1133":137.6,
+"1111":132.3,
+"1149":145.8,
+"1176":103.6,
+"1070":97.6,
+"1170":62.2,
+"1120":53.4
+};
+ 
+const zoneData = {
+
+"1097":{ /* unchanged */ 
+note:"Apex warzone",
+players:[
+"1. [SRQ] INSANE (560M)","2. [AZW] Tricio85 (446M)","3. [SRQ] Tuffy (379M)",
+"4. [SRQ] ChewieBob (375M)","5. [SRQ] ThatGuy512 (369M)",
+"6. [AZW] Silence Mafzaz (366M)","7. [SRQ] JRay5353 (352M)",
+"8. SaraQtr559 (348M)","9. [AZW] Lady Red Disco (342M)",
+"10. [AZW] Nemerx (326M)","11. [SRQ] Nowise (323M)",
+"12. [SRQ] Al1ta (323M)","13. [AZW] pistolPETE (317M)",
+"14. [AZW] R¥AM (317M)","15. [SRQ] ShivA (316M)"
+],
+heroPower:[
+"1. [SRQ] INSANE (404M)","2. [AZW] Tricio85 (279M)","3. [SRQ] ChewieBob (270M)",
+"4. [AZW] Silence Mafzaz (247M)","5. [SRQ] Tuffy (229M)",
+"6. [SRQ] JRay5353 (223M)","7. SaraQtr559 (219M)",
+"8. [SRQ] ThatGuy512 (218M)","9. [AZW] Lady Red Disco (218M)",
+"10. [AZW] R¥AM (211M)","11. [SRQ] FATIH (207M)",
+"12. [AZW] Nemerx (206M)","13. [SRQ] Onyx51 (199M)",
+"14. [SRQ] DilloM (197M)","15. [SRQ] Nowise (197M)"
+],
+alliances:[
+"SRQ — 24.59B (1.38B kills)",
+"AZW — 23.87B (1.14B kills)",
+"THSE — 19.90B (292M kills)",
+"Sa99 — 19.13B (309M kills)",
+"EUA — 17.60B (191M kills)",
+"HCFC — 17.40B (125M kills)",
+"JURY — 17.61B (78M kills)"
+]
+},
+
+"1133":{ /* unchanged */ 
+note:"Deep combat warzone",
+players:[
+"1. The Demon (411M)","2. وليد (362M)","3. THAAD (356M)",
+"4. Huggi B (346M)","5. EmoG (346M)","6. Sally Can Wait (331M)",
+"7. The Killer Pigs (331M)","8. Anne E Mul (322M)",
+"9. kuloloo (320M)","10. I AM ANDY (316M)",
+"11. Aarabi (315M)","12. HULK sMaSh (314M)",
+"13. Spacetracer (311M)","14. Asti294 (308M)",
+"15. Tiny0815 (302M)"
+],
+heroPower:[
+"1. EmoG (261M)","2. The Demon (241M)","3. وليد (240M)",
+"4. The Killer Pigs (233M)","5. THAAD (226M)",
+"6. Sally Can Wait (211M)","7. Aarabi (211M)",
+"8. Y S (207M)","9. Huggi B (204M)",
+"10. Spacetracer (199M)","11. kuloloo (197M)",
+"12. BLACK x (194M)","13. CoOleoi8 (193M)",
+"14. Anne E Mul (192M)","15. Galactic C (191M)"
+],
+alliances:[
+"KGW — 22.87B (385M kills)",
+"GUN1 — 22.67B (1.03B kills)",
+"PAiN — 21.56B (354M kills)",
+"ROCS — 21.28B (344M kills)",
+"BCx — 21.18B (341M kills)",
+"KGW1 — 17.41B (84M kills)",
+"COVE — 15.26B (69M kills)"
+]
+},
+
+"1111":{ /* unchanged */ 
+note:"Balanced elite warzone",
+players:[
+"1. Fav1111TheConqueror (424M)","2. Split10s (404M)",
+"3. Moby Richard (375M)","4. Temu Zombzilla (367M)",
+"5. NOOBY (367M)","6. 또리 (337M)",
+"7. Taylor Friendship (333M)","8. Mooci (325M)",
+"9. BAMBAM Viking (324M)","10. Vivienne2929 (321M)",
+"11. Ella (319M)","12. SkUNT (318M)",
+"13. Devil (313M)","14. secret wombat (309M)",
+"15. Mike (307M)"
+],
+heroPower:[
+"1. Split10s (260M)","2. Fav1111TheConqueror (252M)",
+"3. Mooci (240M)","4. NOOBY (235M)",
+"5. Temu Zombzilla (228M)","6. secret wombat (224M)",
+"7. Drill (218M)","8. Mike (212M)",
+"9. Moby Richard (210M)","10. BAMBAM Viking (208M)",
+"11. Ella (202M)","12. k ♡ (200M)",
+"13. 또리 (198M)","14. Argyle Green 101 (197M)",
+"15. Björn (195M)"
+],
+alliances:[
+"MoOn — 23.23B (679M kills)",
+"TCRs — 22.01B (865M kills)",
+"NMEK — 18.87B (263M kills)",
+"ANKD — 18.72B (258M kills)",
+"LSER — 11.21B (128M kills)",
+"PHKD — 10.99B (48M kills)",
+"3505 — 9.74B (66M kills)"
+]
+},
+
+"1149":{ /* unchanged */ 
+note:"Top-heavy kill warzone",
+players:[
+"1. [ALEZ] I am RV (476M)","2. [ALEZ] I Am Ascending (430M)",
+"3. [ALEZ] BausSy (380M)","4. [PRAY] CANDY (378M)",
+"5. [PRAY] salvia (363M)","6. [PRAY] chong (360M)",
+"7. [ALEZ] TA (354M)","8. [ALEZ] Vallone (346M)",
+"9. [PRAY] DDOBY (344M)","10. [PRAY] Juni (342M)",
+"11. [ALEZ] OB1one223 (340M)","12. [ALEZ] Clembo (339M)",
+"13. [ALEZ] kin (334M)","14. [PRAY] One day (327M)",
+"15. [ALEZ] Xman (323M)"
+],
+heroPower:[
+"1. RV (338M)","2. Ascending (277M)","3. CANDY (231M)",
+"4. Vallone (227M)","5. chong (226M)","6. DDOBY (224M)",
+"7. Xman (223M)","8. BausSy (222M)","9. salvia (218M)",
+"10. Juni (215M)","11. TA (207M)","12. One day (205M)",
+"13. kin (202M)","14. Clembo (200M)","15. TequilaHicks (198M)"
+],
+alliances:[
+"PRAY — 24.99B (1.01B kills)",
+"ALEZ — 24.61B (928M kills)",
+"DieA — 19.52B (262M kills)",
+"DKFO — 18.26B (137M kills)",
+"nAzA — 14.12B (76M kills)",
+"USAO — 12.47B (82M kills)",
+"OverR — 10.70B (43M kills)"
+]
+},
+
+"1176":{ /* unchanged */
+note:"Your warzone",
+players:[
+"1. Catch Me If You Can (367M)","2. Jonkō (353M)",
+"3. Ronnie Boo (330M)","4. Daaaaaamn (320M)",
+"5. Lorena Bobbit (314M)","6. Ali6621 (314M)",
+"7. Lúcky13 (299M)","8. DARK PASSENGER (298M)",
+"9. PandaSlayer1 (294M)","10. Retrovirus86 (292M)",
+"11. HITMYShoot (285M)","12. SN1PER (285M)",
+"13. Ted Kitteh (283M)","14. JITdog (278M)",
+"15. JackSparrowsRevenge (277M)"
+],
+heroPower:[
+"1. Catch Me If You Can (238M)","2. Jonkō (234M)",
+"3. Ali6621 (228M)","4. Daaaaaamn (222M)",
+"5. Ronnie Boo (219M)","6. HITMYShoot (207M)",
+"7. Dr SHA1DOW (193M)","8. JackSparrowsRevenge (193M)",
+"9. Dawan111 (181M)","10. SN1PER (181M)",
+"11. Lúcky13 (177M)","12. BBoS (175M)",
+"13. PSYKO BUNNY (173M)","14. DARK PASSENGER (171M)",
+"15. Boo (170M)"
+],
+alliances:[
+"SVGz — 21.9B (721.77M kills)",
+"WCAG — 19.6B (401.06M kills)",
+"HSPX — 17.5B (170M kills)",
+"KSLW — 16.0B (172M kills)",
+"StaB — 14.8B (83M kills)",
+"PRCL — 10.3B (23M kills)",
+"Fawr — 7.7B (52M kills)"
+]
+},
+
+// ✅ ADDITIONAL 3 ZONES
+
+"1070":{
+note:"Top heavy structure",
+players:[
+"1. zenkudog (468M)","2. Daruko POWER (422M)",
+"3. Hey01c7a (366M)","4. Zest Ma kun (364M)",
+"5. PIRO (362M)","6. しょうたん3 (355M)",
+"7. ももたんr (351M)","8. KASU (341M)",
+"9. きたしろ & (341M)","10. うさのはち (336M)",
+"11. Comm 693 (335M)","12. しんめぇ (330M)",
+"13. アル衛門 aru (328M)","14. イフ POWER (315M)",
+"15. 技師 Gish (313M)"
+],
+heroPower:[
+"1. zenkudog (286M)","2. Daruko POWER (277M)",
+"3. PIRO (238M)","4. Zest Ma kun (228M)",
+"5. Hey01c7a (221M)","6. Bunny Lemon (219M)",
+"7. KASU (212M)","8. イフ POWER (204M)",
+"9. しょうたん3 (204M)","10. きたしろ & (202M)",
+"11. 技師 Gish (199M)","12. ももたんr (198M)",
+"13. Comm 693 (195M)","14. しんめぇ (193M)",
+"15. y POWER (187M)"
+],
+alliances:[
+"Dandlion — 21.62B (561M kills)",
+"OLC7 — 17.16B (410M kills)",
+"HGd3 — 16.35B (229M kills)",
+"o8Oq — 14.94B (189M kills)",
+"WELL — 13.62B (176M kills)",
+"RV52 — 11.22B (130M kills)",
+"RM92 — 13.02B (129M kills)"
+]
+},
+
+"1120":{
+note:"Low ceiling warzone",
+players:[
+"1. akubi (331M)","2. Kotarou (294M)",
+"3. eedgyy (292M)","4. awatoshi (285M)",
+"5. Salieri (284M)","6. CAILLOU (278M)",
+"7. ハータ9 (266M)","8. AZUKI MILK (266M)",
+"9. むいむいむー (261M)","10. ランパート101 (257M)",
+"11. MH21S (257M)","12. T-roc18 (257M)",
+"13. チワユー (256M)","14. noodlemenn (252M)",
+"15. ヒロキング99 (251M)"
+],
+heroPower:[
+"1. akubi (195M)","2. Salieri (191M)",
+"3. AZUKI MILK (183M)","4. CAILLOU (169M)",
+"5. awatoshi (167M)","6. eedgyy (163M)",
+"7. Kotarou (162M)","8. daysej (154M)",
+"9. A1iceee (153M)","10. だおm (152M)",
+"11. ハータ9 (152M)","12. ネコにこばん (151M)",
+"13. むいむいむー (150M)","14. noodlemenn (149M)",
+"15. MH21S (148M)"
+],
+alliances:[
+"obo8 — 15.91B (260M kills)",
+"UdoN — 14.57B (139M kills)",
+"INMA — 14.34B (148M kills)",
+"KDPZ — 5.53B (33M kills)",
+"ELRS — 4.01B (21M kills)",
+"JYC — 3.71B (33M kills)",
+"SAAK — 2.98B (21M kills)"
+]
+},
+
+"1170":{
+note:"Split leadership",
+players:[
+"1. Mac (BELL) (290M)","2. さいくろん (286M)",
+"3. リョウステ (267M)","4. pankiti (265M)",
+"5. やわらか戦車70 (265M)","6. ふくすけまん (262M)",
+"7. 安藤まほろ (261M)","8. セブンディズwo (259M)",
+"9. guna (257M)","10. むさし改GT (257M)",
+"11. TruePromise (256M)","12. satsuki将軍kai (255M)",
+"13. テシャ230H (253M)","14. satsuki0919 (250M)",
+"15. いちまうす (250M)"
+],
+heroPower:[
+"1. Mac (BELL) (173M)","2. かはれん (167M)",
+"3. pankiti (167M)","4. ふくすけまん (161M)",
+"5. 55加齢 (160M)","6. さいくろん (159M)",
+"7. セブンディズwo (155M)","8. 鎌ツチ (155M)",
+"9. やわらか戦車70 (154M)","10. テシャ230H (153M)",
+"11. guna (153M)","12. むさし改GT (151M)",
+"13. ○ NANA ○ (151M)","14. リョウステ (150M)",
+"15. EL Abimanyu (148M)"
+],
+alliances:[
+"PENY — 16.34B (253M kills)",
+"PHOS — 14.63B (264M kills)",
+"INdO — 13.93B (116M kills)",
+"outi — 12.32B (64M kills)",
+"RiTA — 9.23B (157M kills)",
+"BELL — 7.46B (53M kills)",
+"BOnD — 7.43B (97M kills)"
+]
+}
+
+
+};
+
+
+// (zoneData unchanged — keep your existing object here)
+
+// ================= HELPERS =================
+function getLethalityTier(score){
+  if(score >= 160) return {label:"T0 – War Machine", color:"red"};
+  if(score >= 130) return {label:"T1 – High Threat", color:"orange"};
+  if(score >= 100) return {label:"T2 – Competitive", color:"gold"};
+  if(score >= 80) return {label:"T3 – Manageable", color:"cyan"};
+  return {label:"T4 – Weak", color:"green"};
+}
+
+function highlightAlliance(a){
+  const match = a.match(/(\d*\.?\d+)\s*([MB])(?=\s*kills)/i);
+  if (!match) return a;
+
+  let value = parseFloat(match[1]);
+  if (match[2].toUpperCase() === 'B') value *= 1000;
+
+  return value >= 300 ? a + ' 🔥' : a;
+}
+
+// ================= CORE RENDER =================
+function renderZone(zone){
+
+  let z = zoneData[zone];
+  if(!z) return;
+
+  let lethality = lethalityData[zone];
+
+  if(lethality){
+    const tier = getLethalityTier(lethality);
+
+    document.getElementById("zoneLethality").innerHTML =
+    `🔥 Lethality Score: <span style="color:${tier.color}">${lethality.toFixed(1)}</span>
+    <br>⚠️ Threat Level: <span style="color:${tier.color}">${tier.label}</span>`;
+  } else {
+    document.getElementById("zoneLethality").innerHTML = "";
+  }
+
+  document.getElementById("zoneInfo").innerText =
+    "📌 " + z.note;
+
+  document.getElementById("zonePlayers").innerHTML =
+    "<br><strong>🏰 Top 7 Alliances</strong><br>" +
+    (z.alliances ? z.alliances.map(highlightAlliance).join("<br>") : "")
+    + "<br><br><strong>👥 Top 15 Power</strong><br>" +
+    (z.players ? z.players.join("<br>") : "N/A")
+    + (z.heroPower
+      ? "<br><br><strong>🧬 Top 15 Hero Power</strong><br>" + z.heroPower.join("<br>")
+      : "");
+}
+
+// ================= DROPDOWN =================
+document.getElementById("zoneSelect").addEventListener("change", function(){
+  renderZone(this.value);
+});
+
+// ================= CHART =================
+window.addEventListener("load", function(){
+
+  if (typeof Chart === "undefined") return;
+
+  new Chart(document.getElementById('chart'), {
+    type: 'bar',
+    data: {
+      labels: ["1097","1133","1111","1149","1120","1070","1170"],
+      datasets: [
+        {
+          label: "Win %",
+          data: [10,30,45,50,65,75,85],
+          backgroundColor: "orange"
+        },
+        {
+          label: "Lethality",
+          data: [
+            lethalityData["1097"],
+            lethalityData["1133"],
+            lethalityData["1111"],
+            lethalityData["1149"],
+            lethalityData["1120"],
+            lethalityData["1070"],
+            lethalityData["1170"]
+          ],
+          backgroundColor: "red"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "white" }
+        }
+      }
+    }
+  });
+
+});
+
+</script>
+
+</body>
+</html>
